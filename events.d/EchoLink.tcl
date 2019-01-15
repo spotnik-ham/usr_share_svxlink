@@ -228,6 +228,9 @@ proc disconnected {call} {
   spellEchoLinkCallsign $call;
   playMsg "disconnected";
   playSilence 500;
+### F1TZO MOD
+###  puts "$call\_EchoLink: Client 1.1.1.1 disconnected: Connection closed by remote peer MYLOG"
+  puts "### ReflectorLogic: MsgNodeLeft($call)"
 }
 
 
@@ -238,6 +241,9 @@ proc remote_connected {call} {
   playMsg "connected";
   spellEchoLinkCallsign $call;
   playSilence 500;
+### F1TZO MOD
+###  puts "$call\_EchoLink: Login OK from 1.1.1.1 MYLOG"
+  puts "### ReflectorLogic: MsgNodeJoined($call)"
 }
 
 
@@ -254,11 +260,12 @@ proc connected {} {
 # Executed when the list of connected remote EchoLink clients changes
 #   client_list - List of connected clients
 #
-proc client_list_changed {client_list} {
-  #foreach {call} $client_list {
-  #  puts $call
-  #}
-}
+### F1TZO MOD
+###proc client_list_changed {client_list} {
+###  foreach {call} $client_list {
+###    puts "$call\_EchoLink: Login OK from 1.1.1.1 MYLOG"
+###  }
+###}
 
 
 #
@@ -465,9 +472,13 @@ proc reject_outgoing_connection {call} {
 #
 proc is_receiving {rx call} {
   if {$rx == 0} {
-    playSilence 100;
-# coté radio , on en a besoin pour le R0.
-    CW::play " I";
+    playTone 1000 100 100;
+    puts "$call\_EchoLink: Talker stop MYLOG"
+    puts "### ReflectorLogic: MsgTalkerStop($call)"
+  }
+  if {$rx == 1} {
+    puts "$call\_EchoLink: Talker start MYLOG"
+    puts "### ReflectorLogic: MsgTalkerStart($call)"
   }
 }
 
@@ -496,7 +507,7 @@ proc chat_received {msg} {
 #
 proc remote_greeting {call} {
   playSilence 1000;
-#  playMsg "greeting";
+  playMsg "greeting";
 }
 
 
@@ -525,12 +536,12 @@ proc remote_timeout {} {
 
 
 #
-# Executed when the squelch state changes sortie vers EchoLink
+# Executed when the squelch state changes
 #
 proc squelch_open {is_open} {
   if {!$is_open} {
     playSilence 200
-#    playTone 1000 100 100
+    playTone 1000 100 100
   }
 }
 
