@@ -552,4 +552,3 @@ proc squelch_open {is_open} {
 #
 # This file has not been truncated
 #
-
