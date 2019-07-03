@@ -454,6 +454,7 @@ proc dtmf_cmd_received {cmd} {
     }
   }
 
+
   # Speak network IPs
   if {$cmd == "93"} {
     sayIP
@@ -513,38 +514,65 @@ proc dtmf_cmd_received {cmd} {
     return 1
   }
 
-# 99 Salon Urgence
+# 99 Salon International
   if {$cmd == "99"} {
     puts "Executing external command"
     playMsg "Core" "online"
-    exec nohup /etc/spotnik/restart.urg &
+    exec nohup /etc/spotnik/restart.int &
     return 1
   }
 
-# 100 Salon SSTV
+# 100 Salon Bavardage
   if {$cmd == "100"} {
     puts "Executing external command"
     playMsg "Core" "online"
-    exec nohup /etc/spotnik/restart.stv &
+    exec nohup /etc/spotnik/restart.bav &
     return 1
   }
 
-# 101 Salon Urgence
+# 101 Salon Local
   if {$cmd == "101"} {
     puts "Executing external command"
     playMsg "Core" "online"
-    exec nohup /etc/spotnik/restart.cd2 &
+    exec nohup /etc/spotnik/restart.loc &
     return 1
   }
 
-# 102 Réseau EchoLink
+# 102 salon Sat
   if {$cmd == "102"} {
+    puts "Executing external command"
+    playMsg "Core" "online"
+    exec nohup /etc/spotnik/restart.sat &
+    return 1
+  }
+
+# 103 Echolink
+  if {$cmd == "103"} {
     puts "Executing external command"
     playMsg "Core" "online"
     exec nohup /etc/spotnik/restart.el &
     return 1
   }
 
+
+
+# 1000 Reboot
+
+  if {$cmd == "1000"} {
+    puts "Executing external command"
+    playMsg "Core" "online"
+    exec reboot &
+    return 1
+  }
+
+# 1001 halt
+
+  if {$cmd == "1001"} {
+    puts "Executing external command"
+    playMsg "Core" "online"
+    exec halt &
+    return 1
+  }
 
   return 0
 }
