@@ -1,16 +1,16 @@
 ###############################################################################
 #
-# MetarInfo module event handlers
+# Trx module event handlers
 #
 ###############################################################################
 
 #
 # This is the namespace in which all functions and variables below will exist.
 # The name must match the configuration variable "NAME" in the
-# [ModuleMetarInfo] section in the configuration file. The name may be changed
+# [ModuleTrx] section in the configuration file. The name may be changed
 # but it must be changed in both places.
 #
-namespace eval MetarInfo {
+namespace eval Trx {
 
 #
 # Check if this module is loaded in the current logic core
@@ -24,6 +24,8 @@ if {![info exists CFG_ID]} {
 #
 set module_name [namespace tail [namespace current]];
 
+# The currently setup frequency
+variable current_fq 0
 
 #
 # An "overloaded" playMsg that eliminates the need to write the module name
@@ -88,117 +90,51 @@ proc play_help {} {
 # This function will only be called if this module is active.
 #
 proc status_report {} {
-  printInfo "status_report called...";
+  #printInfo "status_report called..."
+  variable current_fq
+  if {$current_fq > 0} {
+    playFrequency $current_fq
+  }
 }
 
 
-# temperature
-proc temperature {temp} {
-  playMsg "temperature";
-  playSilence 100;
-  if {$temp == "not"} {
-    playMsg "not";
-    playMsg "reported";
+proc set_frequency {fq} {
+  #printInfo "### Set transceiver frequency to $fq Hz"
+  variable current_fq
+  set current_fq $fq
+  if {$fq > 0} {
+    playFrequency $fq
+    playMsg "ok"
+  }
+}
+
+
+proc no_matching_band {cmd} {
+  #printInfo "### No matching band for command: $cmd"
+  spellNumber $cmd
+  playMsg "operation_failed"
+}
+
+
+proc failed_to_set_trx {cmd rx_name tx_name} {
+  #printInfo "### Failed to set transceiver: cmd=$cmd RX=$rx_name TX=$tx_name"
+  spellNumber $cmd
+  playMsg "operation_failed"
+}
+
+
+proc play_current_fq {} {
+  variable current_fq
+  if {$current_fq > 0} {
+    playFrequency $current_fq
   } else {
-    if { int($temp) < 0} {
-       playMsg "minus";
-       set temp [string trimleft $temp "-"];
-    }
-    playNumber $temp;
-    if {int($temp) == 1} {
-      playMsg "unit_degree";
-    } else {
-      playMsg "unit_degrees";
-    }
-    playSilence 100;
-  }
-  playSilence 200;
-}
-
-
-# dewpoint
-proc dewpoint {dewpt} {
-  playMsg "dewpoint";
-  playSilence 100;
-  if {$dewpt == "not"} {
-    playMsg "not";
-    playMsg "reported";
-  } else {
-    if { int($dewpt) < 0} {
-       playMsg "minus";
-       set dewpt [string trimleft $dewpt "-"];
-    }
-    playNumber $dewpt;
-    if {int($dewpt) == 1} {
-      playMsg "unit_degree";
-    } else {
-      playMsg "unit_degrees";
-    }
-    playSilence 100;
-  }
-  playSilence 200;
-}
-
-
-# sea level pressure
-proc slp {slp} {
-  playMsg "slp";
-  playNumber $slp;
-  playMsg "unit_hPa";
-  playSilence 200;
-}
-
-
-# QNH
-proc qnh {value} {
-  playMsg "qnh";
-  if {$value == 1000} {
-     playNumber 1;
-     playMsg "thousand";
-  } else {
-     spellNumber $value;
-  }
-  playMsg "unit_hPa";
-  playSilence 200;
-}
-
-# output
-proc say args {
-  variable tsay;
-
-  playSilence 100;
-  foreach item $args {
-    if [regexp {^(\d+)} $item] {
-      sayNumber $item;
-    } else {
-      if {$item == "."} {
-        playMsg "decimal";
-      } else {
-        playMsg $item;
-      }
-    }
-    playSilence 100;
-  }
-  playSilence 200;
-}
-
-#
-# Spell the specified number
-#
-proc playNr {number} {
-  for {set i 0} {$i < [string length $number]} {set i [expr $i + 1]} {
-    set ch [string index $number $i];
-    if {$ch == "."} {
-      playMsg "decimal";
-    } else {
-      playMsg "$ch";
-    }
+    playMsg "not_active"
   }
 }
-
 
 # end of namespace
 }
+
 
 #
 # This file has not been truncated

@@ -28,6 +28,15 @@ variable min_time_between_ident 120;
 variable short_ident_interval 0;
 variable long_ident_interval 0;
 
+variable short_voice_id_enable  1
+variable short_cw_id_enable     0
+variable short_announce_enable  0
+variable short_announce_file    ""
+
+variable long_voice_id_enable   1
+variable long_cw_id_enable      0
+variable long_announce_enable   0
+variable long_announce_file     ""
 
 #
 # The ident_only_after_tx variable indicates if identification is only to
@@ -39,14 +48,17 @@ variable ident_only_after_tx 0;
 variable need_ident 0;
 
 #
-# A list of functions that should be called once every whole minute
+# List of functions that should be called periodically. Use the
+# addMinuteTickSubscriber and addSecondTickSubscriber functions to
+# add subscribers.
 #
-variable timer_tick_subscribers [list];
+variable minute_tick_subscribers [list];
+variable second_tick_subscribers [list];
 
 #
 # Contains the ID of the last receiver that indicated squelch activity
 #
-variable sql_rx_id 0;
+variable sql_rx_id "?";
 
 #
 # Executed when the SvxLink software is started
@@ -92,11 +104,9 @@ proc manual_identification {} {
   playMsg "Core" "the_time_is";
   playTime $hour $minute;
   playSilence 250;
-
   if {$report_ctcss > 0} {
     playMsg "Core" "pl_is";
-    playNumber $report_ctcss;
-    playMsg "Core" "hz";
+    playFrequency $report_ctcss
     playSilence 300;
   }
   if {$active_module != ""} {
@@ -117,7 +127,7 @@ proc manual_identification {} {
       }
     }
   }
-#  playMsg "Default" ""
+  playMsg "Default" "press_0_for_help"
   playSilence 250;
 }
 
@@ -125,24 +135,52 @@ proc manual_identification {} {
 #
 # Executed when a short identification should be sent
 #   hour    - The hour on which this identification occur
-#   minute  - The hour on which this identification occur
+#   minute  - The minute on which this identification occur
 #
 proc send_short_ident {{hour -1} {minute -1}} {
   global mycall;
   global report_ctcss;
   variable CFG_TYPE;
+  variable short_announce_file
+  variable short_announce_enable
+  variable short_voice_id_enable
+  variable short_cw_id_enable
 
-  spellWord $mycall;
-  if {$CFG_TYPE == "Repeater"} {
-    playMsg "Core" "repeater";
-  }
-  playSilence 500;
-
-  if {$report_ctcss > 0} {
+  # Play voice id if enabled
+  if {$short_voice_id_enable} {
+    puts "Playing short voice ID"
+    spellWord $mycall;
+    if {$CFG_TYPE == "Repeater"} {
+      playMsg "Core" "repeater";
+    }
+    playSilence 500;
+ if {$report_ctcss > 0} {
     playMsg "Core" "pl_is";
-    playNumber $report_ctcss;
-    playMsg "Core" "hz";
+    playFrequency $report_ctcss
     playSilence 300;
+  }
+
+  }
+
+  # Play announcement file if enabled
+  if {$short_announce_enable} {
+    puts "Playing short announce"
+    if [file exist "$short_announce_file"] {
+      playFile "$short_announce_file"
+      playSilence 500
+    }
+  }
+
+  # Play CW id if enabled
+  if {$short_cw_id_enable} {
+    puts "Playing short CW ID"
+    if {$CFG_TYPE == "Repeater"} {
+      set call "$mycall/R"
+      CW::play $call
+    } else {
+      CW::play $mycall
+    }
+    playSilence 500;
   }
 }
 
@@ -150,63 +188,89 @@ proc send_short_ident {{hour -1} {minute -1}} {
 #
 # Executed when a long identification (e.g. hourly) should be sent
 #   hour    - The hour on which this identification occur
-#   minute  - The hour on which this identification occur
+#   minute  - The minute on which this identification occur
 #
 proc send_long_ident {hour minute} {
   global mycall;
-  global report_ctcss;
   global loaded_modules;
   global active_module;
+  global report_ctcss;
   variable CFG_TYPE;
+  variable long_announce_file
+  variable long_announce_enable
+  variable long_voice_id_enable
+  variable long_cw_id_enable
 
-  spellWord $mycall;
-  if {$CFG_TYPE == "Repeater"} {
-    playMsg "Core" "repeater";
-  }
-  playSilence 500;
-
-  if {$report_ctcss > 0} {
+  # Play the voice ID if enabled
+  if {$long_voice_id_enable} {
+    puts "Playing Long voice ID"
+    spellWord $mycall;
+    if {$CFG_TYPE == "Repeater"} {
+      playMsg "Core" "repeater";
+    }
+    playSilence 500;
+ if {$report_ctcss > 0} {
     playMsg "Core" "pl_is";
-    playNumber $report_ctcss;
-    playMsg "Core" "hz";
+    playFrequency $report_ctcss
     playSilence 300;
   }
-
-  playMsg "Core" "the_time_is";
-  playSilence 100;
-  playTime $hour $minute;
-  playSilence 500;
+    playMsg "Core" "the_time_is";
+    playSilence 100;
+    playTime $hour $minute;
+    playSilence 500;
 
     # Call the "status_report" function in all modules if no module is active
-  if {$active_module == ""} {
-    foreach module [split $loaded_modules " "] {
-      set func "::";
-      append func $module "::status_report";
-      if {"[info procs $func]" ne ""} {
-        $func;
+    if {$active_module == ""} {
+      foreach module [split $loaded_modules " "] {
+        set func "::";
+        append func $module "::status_report";
+        if {"[info procs $func]" ne ""} {
+          $func;
+        }
       }
+    }
+
+    playSilence 500;
+  }
+
+  # Play announcement file if enabled
+  if {$long_announce_enable} {
+    puts "Playing long announce"
+    if [file exist "$long_announce_file"] {
+      playFile "$long_announce_file"
+      playSilence 500
     }
   }
 
-  playSilence 500;
+  # Play CW id if enabled
+  if {$long_cw_id_enable} {
+    puts "Playing long CW ID"
+    if {$CFG_TYPE == "Repeater"} {
+      set call "$mycall/R"
+      CW::play $call
+    } else {
+      CW::play $mycall
+    }
+    playSilence 100
+  }
 }
 
 
 #
-# Executed when the squelch just have closed and the RGR_SOUND_DELAY timer has
+# Executed when the squelch have just closed and the RGR_SOUND_DELAY timer has
 # expired.
 #
 proc send_rgr_sound {} {
-  variable sql_rx_id;
-  playSilence 50;
-  CW::play " I";
-  playSilence 200;
+  variable sql_rx_id
 
-  for {set i 0} {$i < $sql_rx_id} {incr i 1} {
-   CW::play " I";
-    playSilence 50;
+  if {$sql_rx_id != "?"} {
+    # 150 CPM, 1000 Hz, -4 dBFS
+    CW::play $sql_rx_id 150 1000 -4
+    set sql_rx_id "?"
+  } else {
+    CW::play " K"  200 800 -8
   }
-  playSilence 100;
+  playSilence 100
 }
 
 
@@ -387,32 +451,6 @@ proc dtmf_digit_received {digit duration} {
 proc dtmf_cmd_received {cmd} {
   #global active_module
 
-  # Example: Ignore all commands starting with 3 in the EchoLink module
-  #if {$active_module == "EchoLink"} {
-  #  if {[string index $cmd 0] == "3"} {
-  #    puts "Ignoring random connect command for module EchoLink: $cmd"
-  #    return 1
-  #  }
-  #}
-
-  # Handle the "force core command" mode where a command is forced to be
-  # executed by the core command processor instead of by an active module.
-  # The "force core command" mode is entered by prefixing a command by a star.
-  #if {$active_module != "" && [string index $cmd 0] != "*"} {
-  #  return 0
-  #}
-  #if {[string index $cmd 0] == "*"} {
-  #  set cmd [string range $cmd 1 end]
-  #}
-
-  # Example: Custom command executed when DTMF 99 is received
-  #if {$cmd == "99"} {
-  #  puts "Executing external command"
-  #  playMsg "Core" "online"
-  #  exec ls &
-  #  return 1
-  #}
-
   proc sayIP {} {
     set result [exec /etc/spotnik/getIP]
     puts "$result"
@@ -574,6 +612,8 @@ proc dtmf_cmd_received {cmd} {
     return 1
   }
 
+
+
   return 0
 }
 
@@ -581,14 +621,38 @@ proc dtmf_cmd_received {cmd} {
 #
 # Executed once every whole minute. Don't put any code here directly
 # Create a new function and add it to the timer tick subscriber list
-# by using the function addTimerTickSubscriber.
+# by using the function addMinuteTickSubscriber.
 #
 proc every_minute {} {
-  variable timer_tick_subscribers;
+  variable minute_tick_subscribers;
   #puts [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"];
-  foreach subscriber $timer_tick_subscribers {
+  foreach subscriber $minute_tick_subscribers {
     $subscriber;
   }
+}
+
+
+#
+# Executed once every whole minute. Don't put any code here directly
+# Create a new function and add it to the timer tick subscriber list
+# by using the function addSecondTickSubscriber.
+#
+proc every_second {} {
+  variable second_tick_subscribers;
+  #puts [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"];
+  foreach subscriber $second_tick_subscribers {
+    $subscriber;
+  }
+}
+
+
+#
+# Deprecated: Use the addMinuteTickSubscriber function instead
+#
+proc addTimerTickSubscriber {func} {
+  puts "*** WARNING: Calling deprecated TCL event handler addTimerTickSubcriber."
+  puts "             Use addMinuteTickSubscriber instead"
+  addMinuteTickSubscriber $func;
 }
 
 
@@ -597,9 +661,20 @@ proc every_minute {} {
 # should be executed once every whole minute. This is not an event
 # function but rather a management function.
 #
-proc addTimerTickSubscriber {func} {
-  variable timer_tick_subscribers;
-  lappend timer_tick_subscribers $func;
+proc addMinuteTickSubscriber {func} {
+  variable minute_tick_subscribers;
+  lappend minute_tick_subscribers $func;
+}
+
+
+#
+# Use this function to add a function to the list of functions that
+# should be executed once every second. This is not an event
+# function but rather a management function.
+#
+proc addSecondTickSubscriber {func} {
+  variable second_tick_subscribers;
+  lappend second_tick_subscribers $func;
 }
 
 
@@ -779,6 +854,37 @@ if [info exists CFG_IDENT_ONLY_AFTER_TX] {
   }
 }
 
+if [info exists CFG_SHORT_ANNOUNCE_ENABLE] {
+  set short_announce_enable $CFG_SHORT_ANNOUNCE_ENABLE
+}
+
+if [info exists CFG_SHORT_ANNOUNCE_FILE] {
+  set short_announce_file $CFG_SHORT_ANNOUNCE_FILE
+}
+
+if [info exists CFG_SHORT_VOICE_ID_ENABLE] {
+  set short_voice_id_enable $CFG_SHORT_VOICE_ID_ENABLE
+}
+
+if [info exists CFG_SHORT_CW_ID_ENABLE] {
+  set short_cw_id_enable $CFG_SHORT_CW_ID_ENABLE
+}
+
+if [info exists CFG_LONG_ANNOUNCE_ENABLE] {
+  set long_announce_enable $CFG_LONG_ANNOUNCE_ENABLE
+}
+
+if [info exists CFG_LONG_ANNOUNCE_FILE] {
+  set long_announce_file $CFG_LONG_ANNOUNCE_FILE
+}
+
+if [info exists CFG_LONG_VOICE_ID_ENABLE] {
+  set long_voice_id_enable $CFG_LONG_VOICE_ID_ENABLE
+}
+
+if [info exists CFG_LONG_CW_ID_ENABLE] {
+  set long_cw_id_enable $CFG_LONG_CW_ID_ENABLE
+}
 
 
 # end of namespace
