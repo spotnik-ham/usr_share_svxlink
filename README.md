@@ -1,6 +1,6 @@
 # usr_share_svxlink
 SPOTNIK TCL scripts 
-in /usr/share/svxlink & subdir event.d
+in /usr/share/svxlink/event.d/local
 
 the main files are in /usr/share/svxlink
 
@@ -19,8 +19,8 @@ subdirectory /usr/share/svxlink/sounds not present (more than 1000 files),
 
 ```
 ssh spotnik
-cd /usr/share
-git clone https://github.com/spotnik-ham/usr_share_svxlink.git svxlink
+cd /usr/share/svxlink/events.d
+git clone https://github.com/spotnik-ham/usr_share_svxlink.git local
 
 ```
 
@@ -28,7 +28,7 @@ git clone https://github.com/spotnik-ham/usr_share_svxlink.git svxlink
 
 ```
 ssh spotnik
-cd /usr/share
+cd /usr/share/svxlink/events.d
 git pull
 
 ```
