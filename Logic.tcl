@@ -107,6 +107,7 @@ proc manual_identification {} {
   if {$report_ctcss > 0} {
     playMsg "Core" "pl_is";
     playFrequency $report_ctcss
+    playMsg "Core" "hz";
     playSilence 300;
   }
   if {$active_module != ""} {
@@ -157,6 +158,7 @@ proc send_short_ident {{hour -1} {minute -1}} {
  if {$report_ctcss > 0} {
     playMsg "Core" "pl_is";
     playFrequency $report_ctcss
+    playMsg "Core" "hz";
     playSilence 300;
   }
 
@@ -212,6 +214,7 @@ proc send_long_ident {hour minute} {
  if {$report_ctcss > 0} {
     playMsg "Core" "pl_is";
     playFrequency $report_ctcss
+    playMsg "Core" "hz";
     playSilence 300;
   }
     playMsg "Core" "the_time_is";
