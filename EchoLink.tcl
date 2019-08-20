@@ -24,6 +24,7 @@ if {![info exists CFG_ID]} {
 #
 set module_name [namespace tail [namespace current]];
 
+
 #
 # An "overloaded" playMsg that eliminates the need to write the module name
 # as the first argument.
@@ -227,10 +228,10 @@ proc disconnected {call} {
   spellEchoLinkCallsign $call;
   playMsg "disconnected";
   playSilence 500;
-
-### mod NLG
-puts "ReflectorLogic: Node left: $call"
-
+### F1TZO MOD
+###  puts "$call\_EchoLink: Client 1.1.1.1 disconnected: Connection closed by remote peer MYLOG"
+  #puts "### ReflectorLogic: MsgNodeLeft($call)"
+  puts "ReflectorLogic: Node left: $call"
 }
 
 
@@ -241,8 +242,10 @@ proc remote_connected {call} {
   playMsg "connected";
   spellEchoLinkCallsign $call;
   playSilence 500;
-### mode NLG
-puts "ReflectorLogic: Node joined: $call"
+### F1TZO MOD
+###  puts "$call\_EchoLink: Login OK from 1.1.1.1 MYLOG"
+  #puts "### ReflectorLogic: MsgNodeJoined($call)"
+  puts "ReflectorLogic: Node joined: $call";
 }
 
 
@@ -261,11 +264,12 @@ proc connected {call} {
 # Executed when the list of connected remote EchoLink clients changes
 #   client_list - List of connected clients
 #
-proc client_list_changed {client_list} {
-  #foreach {call} $client_list {
-  #  puts $call
-  #}
-}
+### F1TZO MOD
+###proc client_list_changed {client_list} {
+###  foreach {call} $client_list {
+###    puts "$call\_EchoLink: Login OK from 1.1.1.1 MYLOG"
+###  }
+###}
 
 
 #
@@ -473,16 +477,12 @@ proc reject_outgoing_connection {call} {
 proc is_receiving {rx call} {
   if {$rx == 0} {
     playTone 1000 100 100;
-#### mod NLG
-        puts "ReflectorLogic: Talker stop: $call"
+    puts "### ReflectorLogic: MsgTalkerStop($call)"
   }
-if {$rx == 1} {
-         puts "ReflectorLogic: Talker start: $call" 
-
-    }
+  if {$rx == 1} {
+    puts "### ReflectorLogic: MsgTalkerStart($call)"
+  }
 }
-
-
 
 
 #
@@ -512,7 +512,6 @@ proc chat_received {msg} {
 proc info_received {call msg} {
   #puts "$call: $msg"
 }
-
 
 #-----------------------------------------------------------------------------
 # The events below are for remote EchoLink announcements. Sounds are not

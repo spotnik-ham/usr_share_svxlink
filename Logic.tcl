@@ -66,6 +66,18 @@ variable sql_rx_id "?";
 proc startup {} {
   #playMsg "Core" "online"
   #send_short_ident
+
+	variable room;
+
+	set fp [open "/etc/spotnik/network" "r"];
+	set room [string tolower [gets $fp]]
+
+	puts "**** Salon: $room ****";
+	
+	if {"$room" != "default"} {
+		playMsg "RRF" "S$room"
+	}
+
 }
 
 
@@ -268,7 +280,7 @@ proc send_rgr_sound {} {
     CW::play $sql_rx_id 150 1000 -4
     set sql_rx_id "?"
   } else {
-    CW::play " K"  200 800 -8
+    CW::play "  K"  150 600 -8
   }
   playSilence 100
 }
@@ -451,6 +463,34 @@ proc dtmf_digit_received {digit duration} {
 proc dtmf_cmd_received {cmd} {
   #global active_module
 
+  # Example: Ignore all commands starting with 3 in the EchoLink module.
+  #          Allow commands that have four or more digits.
+  #if {$active_module == "EchoLink"} {
+  #  if {[string length $cmd] < 4 && [string index $cmd 0] == "3"} {
+  #    puts "Ignoring random connect command for module EchoLink: $cmd"
+  #    return 1
+  #  }
+  #}
+
+  # Handle the "force core command" mode where a command is forced to be
+  # executed by the core command processor instead of by an active module.
+  # The "force core command" mode is entered by prefixing a command by a star.
+  #if {$active_module != "" && [string index $cmd 0] != "*"} {
+  #  return 0
+  #}
+  #if {[string index $cmd 0] == "*"} {
+  #  set cmd [string range $cmd 1 end]
+  #}
+
+  # Example: Custom command executed when DTMF 99 is received
+  #if {$cmd == "99"} {
+  #  puts "Executing external command"
+  
+  #  playMsg "Core" "online"
+  #  exec ls &
+  #  return 1
+  #}
+  
   proc sayIP {} {
     set result [exec /etc/spotnik/getIP]
     puts "$result"
@@ -589,6 +629,14 @@ proc dtmf_cmd_received {cmd} {
     puts "Executing external command"
     playMsg "Core" "online"
     exec nohup /etc/spotnik/restart.el &
+    return 1
+  }
+
+# 104 Regional Ã crÃer
+  if {$cmd == "104"} {
+    puts "Executing external command"
+    playMsg "Core" "online"
+    exec nohup /etc/spotnik/restart.reg &
     return 1
   }
 
