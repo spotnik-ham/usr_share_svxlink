@@ -20,7 +20,7 @@ subdirectory /usr/share/svxlink/sounds not present (more than 1000 files),
 ```
 ssh spotnik
 cd /usr/share/svxlink/events.d
-git clone https://github.com/spotnik-ham/usr_share_svxlink.git local
+git clone --single-branch --branch Version_4 https://github.com/spotnik-ham/usr_share_svxlink.git local
 
 ```
 
