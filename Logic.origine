@@ -761,7 +761,7 @@ proc dvswitchQSY {cmd ambemode mode tune nom} {
 
 # YSF-FRANCE
   if {$cmd == "3000"} {
-    dvswitchQSY $cmd "YSFN" "YSF" "m55.evxonline.net:4200" "france"
+    dvswitchQSY $cmd "YSFN" "YSF" "m55.evxonline.net:42000" "france"
     return 1
   }
 
