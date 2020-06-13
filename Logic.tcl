@@ -596,7 +596,7 @@ proc dvswitchQSY {cmd ambemode mode tune nom} {
     return 1
   }
 
-# Mode Déconnecté du réseau, Autonome Relais seulement
+# Mode DÃ©connectÃ© du rÃ©seau, Autonome Relais seulement
 
   if {$cmd == "95"} {
     puts "Executing external command"
@@ -674,7 +674,7 @@ proc dvswitchQSY {cmd ambemode mode tune nom} {
     return 1
   }
 
-# 104 Regional àcr�er
+# 104 Regional Ã crÃer
   if {$cmd == "104"} {
     puts "Executing external command"
     playMsg "Core" "online"
@@ -761,7 +761,7 @@ proc dvswitchQSY {cmd ambemode mode tune nom} {
 
 # YSF-FRANCE
   if {$cmd == "3000"} {
-    dvswitchQSY $cmd "YSFN" "YSF" "m55.evxonline.net:4200" "france"
+    dvswitchQSY $cmd "YSFN" "YSF" "m55.evxonline.net:42000" "france"
     return 1
   }
 
