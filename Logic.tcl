@@ -74,9 +74,9 @@ proc startup {} {
 
 	puts "**** Salon: $room ****";
 	
-	if {"$room" != "default"} {
-		playMsg "RRF" "S$room"
-	}
+#	if {"$room" != "default"} {
+#		playMsg "RRF" "S$room"
+#	}
 
 }
 
@@ -563,8 +563,6 @@ proc dtmf_cmd_received {cmd} {
     return 1
   }
 
-
-
 # 96 SvxReflector RRF
 
   if {$cmd == "96"} {
@@ -616,11 +614,11 @@ proc dtmf_cmd_received {cmd} {
     return 1
   }
 
-# 102 salon Sat
+# 102 salon exp
   if {$cmd == "102"} {
     puts "Executing external command"
     playMsg "Core" "online"
-    exec nohup /etc/spotnik/restart.sat &
+    exec nohup /etc/spotnik/restart.exp &
     return 1
   }
 
@@ -632,7 +630,7 @@ proc dtmf_cmd_received {cmd} {
     return 1
   }
 
-# 104 Regional àcr�er
+# 104 Regional àceer
   if {$cmd == "104"} {
     puts "Executing external command"
     playMsg "Core" "online"
@@ -640,25 +638,82 @@ proc dtmf_cmd_received {cmd} {
     return 1
   }
 
+# 200 Raptor start and stop
+  if {$cmd == "200"} {
+    puts "Executing external command"
+    exec nohup /opt/RRFRaptor/RRFRaptor.sh &
+    return 1
+  }
+
+# 201 Raptor quick scan
+  if {$cmd == "201"} {
+    puts "Executing external command"
+    exec /opt/RRFRaptor/RRFRaptor.sh scan
+    return 1
+  }
+
+# 202 Raptor sound
+  if {$cmd == "202"} {
+    if { [file exists /tmp/RRFRaptor_status.tcl] } {
+      source "/tmp/RRFRaptor_status.tcl"
+      if {$RRFRaptor == "ON"} {
+        playSilence 1500
+        playFile /opt/RRFRaptor/sounds/active.wav     
+      } else {
+        playSilence 1500
+        playFile /opt/RRFRaptor/sounds/desactive.wav
+      }
+    }
+    return 1
+  }
+
+# 203 Raptor quick scan sound
+  if {$cmd == "203"} {
+    if { [file exists /tmp/RRFRaptor_scan.tcl] } {
+      source "/tmp/RRFRaptor_scan.tcl"
+      if {$RRFRaptor == "None"} {
+        playSilence 1500
+        playFile /opt/RRFRaptor/sounds/qso_ko.wav        
+      } else {
+        playSilence 1500
+        playFile /opt/RRFRaptor/sounds/qso_ok.wav
+        if {$RRFRaptor == "RRF"} {
+          playFile /etc/spotnik/Srrf.wav      
+        } elseif {$RRFRaptor == "FON"} {
+          playFile /etc/spotnik/Sfon.wav    
+        } elseif {$RRFRaptor == "TECHNIQUE"} {
+          playFile /etc/spotnik/Stec.wav    
+        } elseif {$RRFRaptor == "INTERNATIONAL"} {
+          playFile /etc/spotnik/Sint.wav    
+        } elseif {$RRFRaptor == "LOCAL"} {
+          playFile /etc/spotnik/Sloc.wav    
+        } elseif {$RRFRaptor == "BAVARDAGE"} {
+          playFile /etc/spotnik/Sbav.wav    
+        }  
+      }
+    }
+    return 1
+  }
+
 
 
 # 1000 Reboot
 
-  if {$cmd == "1000"} {
-    puts "Executing external command"
-    playMsg "Core" "online"
-    exec reboot &
-    return 1
-  }
+#  if {$cmd == "1000"} {
+#    puts "Executing external command"
+#    playMsg "Core" "online"
+#    exec reboot &
+#    return 1
+#  }
 
 # 1001 halt
 
-  if {$cmd == "1001"} {
-    puts "Executing external command"
-    playMsg "Core" "online"
-    exec halt &
-    return 1
-  }
+#  if {$cmd == "1001"} {
+#    puts "Executing external command"
+#    playMsg "Core" "online"
+#    exec halt &
+#    return 1
+#  }
 
 
 
